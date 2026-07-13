@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Marginalia — a field guide to everything</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#12161d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Marginalia">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#12161d; --ink-2:#1a2029;
+    --paper:#efe9dc; --paper-dim:#a9a496;
+    --brass:#c9a227; --rust:#b0532c; --moss:#54725a; --slate:#7c8598;
+    --line: rgba(239,233,220,0.14);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;height:100%;background:#05070a;}
+  body{
+    font-family:'Inter',sans-serif;
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh;
+    background: radial-gradient(circle at 30% 20%, #10141c 0%, #05070a 60%);
+    padding:24px;
+  }
+  .frame{ position:relative; width:390px; height:844px; background:#000; border-radius:54px; padding:14px;
+    box-shadow: 0 40px 80px -20px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.04); }
+  .screen{ position:relative; width:100%; height:100%; background:var(--ink); border-radius:40px; overflow:hidden; }
+  .statusbar{ position:absolute; top:0; left:0; right:0; height:44px; display:flex; align-items:center;
+    justify-content:space-between; padding:0 28px; z-index:40; color:var(--paper); font-size:13px; font-weight:600; pointer-events:none;}
+  .notch{ position:absolute; top:8px; left:50%; transform:translateX(-50%); width:120px; height:22px; background:#000; border-radius:14px; z-index:41;}
+
+  .app-header{ position:absolute; top:44px; left:0; right:0; z-index:30; padding:10px 18px 12px;
+    display:flex; align-items:center; justify-content:space-between;
+    background:linear-gradient(180deg, var(--ink) 55%, rgba(18,22,29,0)); }
+  .brand{ display:flex; flex-direction:column; line-height:1; }
+  .brand-mark{ font-family:'Fraunces',serif; font-size:19px; color:var(--paper); }
+  .brand-sub{ font-family:'JetBrains Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:0.14em; color:var(--slate); margin-top:2px;}
+  .sync-pill{ display:flex; align-items:center; gap:6px; font-family:'JetBrains Mono',monospace; font-size:9.5px;
+    letter-spacing:0.05em; color:var(--brass); border:1px solid rgba(201,162,39,0.4); background:rgba(201,162,39,0.08);
+    padding:5px 9px 5px 7px; border-radius:20px; cursor:pointer; user-select:none; transition:all .2s;}
+  .sync-pill.offline{ color:var(--slate); border-color:rgba(124,133,152,0.4); background:rgba(124,133,152,0.08);}
+  .sync-dot{ width:6px; height:6px; border-radius:50%; background:currentColor; box-shadow:0 0 6px currentColor;}
+
+  #feed{ position:absolute; inset:0; overflow-y:scroll; scroll-snap-type:y mandatory; scrollbar-width:none;}
+  #feed::-webkit-scrollbar{display:none;}
+  .card{ scroll-snap-align:start; width:100%; height:100%; display:flex; flex-direction:column; justify-content:flex-end;
+    position:relative; padding:0 26px 40px; cursor:pointer;}
+  .card::before{ content:''; position:absolute; inset:0; background: radial-gradient(circle at 78% 8%, var(--tint,var(--brass)) 0%, transparent 45%); opacity:0.16;}
+  .stamp{ position:absolute; top:100px; left:26px; display:flex; align-items:center; gap:9px; padding:8px 13px 8px 9px;
+    border:1.5px dashed var(--tint,var(--brass)); border-radius:30px; transform:rotate(-4deg); background:rgba(18,22,29,0.5);}
+  .stamp svg{ width:22px; height:22px; stroke:var(--tint,var(--brass)); fill:none; stroke-width:3;}
+  .stamp span{ font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--tint,var(--brass));}
+  .q{ font-family:'Fraunces',serif; font-style:italic; font-weight:500; font-size:26px; line-height:1.2; color:var(--paper); margin:0 0 14px; text-shadow:0 2px 20px rgba(0,0,0,0.4);}
+  .teaser{ font-size:14px; line-height:1.55; color:var(--paper-dim); margin:0 0 22px; max-width:300px;}
+  .tap-row{ display:flex; align-items:center; gap:8px;}
+  .tap-row .line{ width:26px; height:1px; background:var(--tint,var(--brass));}
+  .tap-row span{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; color:var(--tint,var(--brass));}
+
+  .dots{ position:absolute; right:12px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:6px; z-index:25;}
+  .dots i{ width:4px; height:4px; border-radius:50%; background:var(--line); display:block;}
+
+  .end-card{ scroll-snap-align:start; width:100%; height:100%; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; text-align:center; padding:0 40px; gap:14px;}
+  .end-card svg{ width:34px; height:34px; stroke:var(--slate); fill:none; stroke-width:2.5;}
+  .end-card h3{ font-family:'Fraunces',serif; font-size:20px; color:var(--paper); margin:0; font-weight:500;}
+  .end-card p{ font-size:13.5px; color:var(--slate); line-height:1.5; margin:0;}
+
+  #detail{ position:absolute; inset:0; background:var(--ink-2); transform:translateY(100%);
+    transition:transform .42s cubic-bezier(.22,.8,.32,1); z-index:50; overflow-y:auto; padding-bottom:40px;}
+  #detail.open{ transform:translateY(0);}
+  .detail-top{ position:sticky; top:0; z-index:5; background:linear-gradient(180deg, var(--ink-2) 70%, rgba(26,32,41,0));
+    padding:52px 20px 20px; display:flex; justify-content:space-between; align-items:flex-start;}
+  .close-btn{ width:34px; height:34px; border-radius:50%; border:1px solid var(--line); display:flex; align-items:center;
+    justify-content:center; color:var(--paper); background:rgba(0,0,0,0.2); font-size:16px; cursor:pointer;}
+  .read-meta{ font-family:'JetBrains Mono',monospace; font-size:9.5px; color:var(--slate); letter-spacing:0.08em; padding-top:8px;}
+  .hero{ margin:6px 26px 20px; height:140px; border-radius:18px; display:flex; align-items:center; justify-content:center;
+    background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.06), transparent 60%), var(--ink); border:1px solid var(--line);}
+  .hero svg{ width:72px; height:72px; stroke:var(--tint,var(--brass)); fill:none; stroke-width:2.4;}
+  .detail-body{ padding:0 26px;}
+  .detail-eyebrow{ font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:var(--tint,var(--brass)); margin-bottom:10px; display:block;}
+  .detail-title{ font-family:'Fraunces',serif; font-weight:600; font-size:24px; line-height:1.26; color:var(--paper); margin:0 0 18px;}
+  .detail-body p{ font-size:15px; line-height:1.7; color:#d8d3c5; margin:0 0 16px;}
+  .related-label{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; color:var(--slate); margin:26px 0 10px;}
+  .chips{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;}
+  .chip{ font-size:12.5px; color:var(--paper); border:1px solid var(--line); border-radius:20px; padding:7px 13px; cursor:pointer;}
+  .chip:hover{ border-color:var(--brass); color:var(--brass);}
+  .offline-tag{ display:flex; align-items:center; gap:6px; margin-top:24px; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--moss); letter-spacing:0.06em;}
+  .offline-tag svg{ width:13px; height:13px; stroke:var(--moss); fill:none; stroke-width:3;}
+
+  @media (max-width:460px){ .frame{ width:100vw; height:100vh; border-radius:0; padding:0;} .screen{ border-radius:0;} }
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="statusbar"><span>9:41</span><span>●●●●</span></div>
+    <div class="app-header">
+      <div class="brand">
+        <div class="brand-mark">Marginalia</div>
+        <div class="brand-sub">a field guide to everything</div>
+      </div>
+      <div class="sync-pill" id="syncPill"><span class="sync-dot"></span><span id="syncText">online · endless</span></div>
+    </div>
+    <div id="feed"></div>
+    <div class="dots" id="dots"></div>
+    <div id="detail"></div>
+  </div>
+</div>
+
+<script>
+const ICONS = {
+  helmet: `<path d="M20 78 Q20 40 60 34 Q100 40 100 78" /><path d="M20 78 h80" /><path d="M55 20 L65 20 L64 36 L56 36 Z" /><path d="M35 78 v10 M85 78 v10"/>`,
+  scroll: `<path d="M30 26 Q22 26 22 34 Q22 42 30 42 H90 V94 Q90 102 82 102 Q74 102 74 94"/><path d="M30 42 V94 Q30 102 22 102"/><path d="M42 54 h34 M42 66 h34 M42 78 h24"/>`,
+  compass: `<circle cx="60" cy="60" r="34"/><path d="M60 40 L68 60 L60 80 L52 60 Z"/><path d="M60 20 v8 M60 92 v8 M20 60 h8 M92 60 h8"/>`,
+  hourglass: `<path d="M34 20 h52 M34 100 h52 M38 20 Q38 50 60 60 Q82 50 82 20 M38 100 Q38 70 60 60 Q82 70 82 100"/>`,
+  virus: `<circle cx="60" cy="60" r="20"/><path d="M60 24 v10 M60 86 v10 M24 60 h10 M86 60 h10 M36 36 l7 7 M77 77 l7 7 M84 36 l-7 7 M43 77 l-7 7"/>`,
+  telescope: `<path d="M22 96 L70 48"/><path d="M60 34 L94 68 L82 80 L48 46 Z"/><path d="M22 96 l-6 6 M76 40 l10 -10"/><circle cx="88" cy="30" r="5"/>`,
+  spiral: `<path d="M60 60 m-6 0 a6 6 0 1 0 12 0 a6 6 0 1 0 -12 0"/><path d="M60 60 m-16 0 a16 16 0 1 0 32 0 a16 16 0 0 0 -30 -8"/><path d="M60 60 m-30 0 a30 30 0 1 0 60 0 a30 30 0 0 0 -55 -18"/>`,
+  ship: `<path d="M18 76 Q60 96 102 76 L92 92 H28 Z"/><path d="M60 76 V22"/><path d="M60 26 Q84 34 88 54 Q72 58 60 50 Z"/><path d="M60 30 Q42 40 36 56 Q50 58 60 52 Z"/>`,
+  hands: `<path d="M30 70 Q30 40 55 34 Q52 50 52 60"/><path d="M90 70 Q90 40 65 34 Q68 50 68 60"/><path d="M52 60 Q60 52 68 60 Q60 68 52 60 Z"/><path d="M30 70 Q30 90 60 96 Q90 90 90 70"/>`,
+  press: `<rect x="30" y="30" width="60" height="14"/><path d="M60 44 v20"/><rect x="26" y="64" width="68" height="10"/><path d="M40 74 v14 M80 74 v14"/><path d="M36 88 h48"/>`,
+  pillheart: `<circle cx="48" cy="60" r="20"/><circle cx="80" cy="60" r="20"/><path d="M60 44 v32"/>`,
+  hammer: `<path d="M28 28 L54 54 L44 64 L18 38 Z"/><path d="M54 54 L92 92 L82 102 L44 64"/>`,
+  ants: `<circle cx="40" cy="60" r="8"/><circle cx="60" cy="48" r="6"/><circle cx="60" cy="72" r="6"/><path d="M40 60 Q52 48 60 48 M40 60 Q52 72 60 72"/><path d="M78 40 l14 -8 M78 48 l16 0 M78 56 l14 8"/><path d="M78 64 l14 -8 M78 72 l16 0 M78 80 l14 8"/>`
+};
+
+const POOL = [
+{
+  id:'rome-fall', cat:'History', tint:'#b0532c', icon:'helmet',
+  q:'Why did Rome fall, when it had roads, law, and a professional army?',
+  teaser:'The Western Roman Empire had engineering, bureaucracy, and military doctrine that outclassed its neighbors for centuries — yet it unravelled within a single lifetime. Historians still argue over whether the real cause was economic, military, political, or something else entirely.',
+  title:'The fall of Rome has no single cause — and that\'s the real lesson',
+  eyebrow:'History · long read',
+  body:[
+   'Ask ten historians why the Western Roman Empire collapsed in the 5th century, and you will likely get ten overlapping but distinct answers. Edward Gibbon, writing in the 18th century, blamed moral decay and the corrosive rise of Christianity displacing civic virtue — a view almost no serious historian holds today, but one that shaped popular imagination for two hundred years. Modern scholarship has replaced that single-cause story with a tangle of contributing pressures, none of which alone would likely have been fatal.',
+   'The economic argument points to currency debasement. Roman emperors, chronically short of silver to pay soldiers and bureaucrats, repeatedly reduced the precious-metal content of coins. By the 3rd century, the denarius held a fraction of its original silver, fueling inflation that eroded trust in Roman money and, with it, trust in Roman institutions. A state that cannot reliably pay its army is a fragile state, and Rome\'s army was its most expensive line item by far.',
+   'The military argument focuses on overextension and manpower. At its height, Rome defended a border stretching from Scotland to the Euphrates with a force that, by modern standards, was remarkably small — probably under half a million men for the whole empire. As the empire increasingly relied on Germanic foederati, allied tribes recruited to fight for Rome in exchange for land and pay, the line between "Roman army" and "the same peoples Rome was supposedly defending against" blurred. When those arrangements broke down, as they did with the Visigoths in 410, Rome was fighting former employees who knew its weaknesses intimately.',
+   'A third strand is political: the sheer instability of imperial succession. Rome had no reliable, agreed-upon mechanism for transferring power. The 3rd century alone saw over twenty emperors, most dying violently, in what historians call the Crisis of the Third Century. Civil wars pulled legions away from the frontiers to fight each other over the throne, leaving borders exposed at exactly the moments unity was most needed.',
+   'Then there is climate and disease, a case historians have only taken seriously in the last few decades thanks to ice-core and tree-ring data. The period around the fall of the West coincided with the Late Antique Little Ice Age, a cooling event linked to volcanic eruptions, which likely reduced agricultural yields across the empire. The Plague of Cyprian in the 3rd century and later outbreaks may have killed a significant share of the population in some regions, thinning the tax base and the army recruitment pool simultaneously.',
+   'What makes this genuinely interesting, rather than just a trivia answer, is how these factors interacted. A weaker currency made it harder to pay soldiers, which made emperors more dependent on foederati, which made frontiers less loyal, which made civil wars more costly, which pulled resources from the frontier, which let outside pressure through, which shrank tax revenue further. No single domino was decisive; the compounding was.',
+   'It is also worth noting what did not happen: Rome did not fall to a single overwhelming invasion the way, say, the Aztec Empire fell to Cortés. The Western Empire\'s institutions eroded gradually enough that contemporaries in the East, ruling from Constantinople, did not consider "Rome" to have ended at all — the Eastern Roman Empire, which we call Byzantine only in hindsight, continued for another thousand years. That alone should make us suspicious of any tidy single-cause explanation for 476.'
+  ],
+  related:['ussr-collapse','black-death']
+},
+{
+  id:'needham', cat:'History of Science', tint:'#c9a227', icon:'compass',
+  q:'Why didn\'t China\'s early scientific lead turn into a scientific revolution?',
+  teaser:'By 1400, China had printing, gunpowder, the compass, and cast iron centuries before Europe. Yet the systematic, mathematized science that reshaped the West after 1600 didn\'t take root there first. The puzzle even has a name — historians call it the Needham Question — and no answer fully satisfies.',
+  title:'The Needham Question: why invention didn\'t become revolution',
+  eyebrow:'History of science · long read',
+  body:[
+   'Joseph Needham, a British biochemist turned historian who spent much of his life cataloguing Chinese scientific and technical achievement, posed a question that has haunted historians of science since: for most of recorded history, China was more technologically advanced than Europe, often by centuries. Papermaking, the compass, gunpowder, movable-type printing, cast iron, and sophisticated astronomical instruments all appeared in China well before their European counterparts. And yet it was Europe, not China, that produced Copernicus, Galileo, Newton, and the systematic experimental method we now call modern science. Why?',
+   'One influential answer points to institutions. Imperial China selected its administrative elite through the civil service examination system, which tested mastery of classical texts, Confucian philosophy, and literary composition — not mathematics or natural philosophy. Talented minds were funneled toward becoming scholar-officials, and the prestige, wealth, and security of that path drew ambition away from the kind of open-ended, often financially precarious inquiry that characterized early modern European natural philosophers.',
+   'A second answer is political fragmentation, somewhat counterintuitively treated as a strength. Europe after the fall of Rome was a patchwork of competing kingdoms, city-states, and church authorities, none powerful enough to suppress an idea everywhere at once. When the Church restricted a thinker in one territory, they might find patronage in another. China, by contrast, was usually unified under a single imperial authority; a shift in official attitude toward a field of study — astronomy, for instance, which was tightly linked to the emperor\'s claimed mandate from heaven — could affect the entire empire at once, for better or worse.',
+   'A third answer concerns the printing press itself, an invention China had centuries earlier than Europe. Movable type existed in China by the 11th century, yet its impact was more muted than Gutenberg\'s 15th-century press would later have in Europe. Part of the explanation is linguistic and technical: Chinese script requires thousands of distinct characters, making movable type far more cumbersome to set than an alphabet of two dozen letters, so woodblock printing remained more practical for a long time. But part of it may also be structural — China\'s scholarly culture prized textual fidelity to established classics rather than the rapid, contentious, often heretical proliferation of new and competing ideas that print fueled in Reformation-era Europe.',
+   'A fourth answer, favored by economic historians like Kenneth Pomeranz, questions the premise itself. Pomeranz\'s "Great Divergence" argument suggests that as late as 1750, the most developed regions of China (the Yangzi Delta) and the most developed regions of Europe (England, the Low Countries) were not obviously different in living standards, technology, or market sophistication. What diverged sharply afterward, he argues, owed as much to Europe\'s access to New World resources and coal deposits conveniently located near industrial centers as to any deep cultural or institutional superiority.',
+   'None of these answers is fully satisfying alone, which is precisely why the Needham Question remains contested rather than settled. It is tempting, and historically common, to reach for a single explanatory factor — Confucianism, political unity, geography, luck — but the honest answer is that historians disagree on the relative weight of each, and new archival and economic research continues to shift the debate. What the question does settle is the folk assumption that Europe was simply "ahead" the whole time. It wasn\'t. Something specific happened after roughly 1600, and figuring out exactly what remains one of the more genuinely open problems in global history.'
+  ],
+  related:['printing-press','fall-rome']
+},
+{
+  id:'democratic-peace', cat:'Political Science', tint:'#54725a', icon:'scroll',
+  q:'Why do democracies almost never go to war with each other?',
+  teaser:'It is one of the closest things international relations has to a hard empirical law: modern democracies rarely fight wars against other democracies, even though they fight plenty of wars overall. The theory explaining why is compelling — and seriously contested.',
+  title:'The democratic peace: a rare near-law with an unsettled explanation',
+  eyebrow:'Political science · long read',
+  body:[
+   'Among the more striking patterns in modern international relations is this: liberal democracies fight wars fairly often, but almost never against each other. Scholars have found this pattern robust enough across the 19th and 20th centuries that some, like political scientist Jack Levy, have half-joked it comes as close to an empirical law as anything in the field. The theory built to explain it is called the democratic peace, and it has become one of the most cited — and most argued over — ideas in political science.',
+   'The dominant explanation rests on two overlapping mechanisms. The institutional mechanism holds that democratic leaders are accountable to voters who bear the human and economic costs of war, and face institutional checks — legislatures, courts, free press — that make it harder to rush into conflict unilaterally. The normative mechanism holds that democracies, sharing a political culture built on negotiation, compromise, and non-violent transfer of power domestically, tend to externalize those same norms when dealing with fellow democracies, resolving disputes through diplomacy rather than force, while reserving more suspicion for non-democratic states whose intentions and internal constraints are harder to read.',
+   'Both mechanisms have real empirical support, but critics have pushed back hard on several fronts. One challenge is selection bias in the historical record: the era in which we have good data on democracies — roughly since 1816 by the standard Correlates of War dataset — is also an era shaped by particular power structures, like the Cold War alliance system, where the United States actively worked to keep fellow democracies within NATO and other blocs from fighting each other. Some scholars argue this "alliance" effect, not shared democratic character itself, does much of the explanatory work.',
+   'A second challenge is definitional. Political scientists disagree on thresholds for what counts as a "democracy" and what counts as a "war" in these datasets, and results have been shown to shift meaningfully depending on where those lines are drawn. Democracies with a much lower population share able to vote — Britain and the United States in the 19th century, for instance, when women and often racial minorities were excluded — are sometimes coded as full democracies in these studies, which some critics find historically questionable.',
+   'A third, more pointed critique comes from realist international relations scholars, who argue the theory has the causal arrow backwards, or at least tangled: perhaps democracies simply tend to ally with other democracies for strategic reasons already, and peace follows from shared strategic interest rather than shared regime type causing the peace directly.',
+   'What makes the democratic peace worth sitting with, rather than treating as settled fact or dismissed myth, is that both the empirical pattern and the disagreement over its cause are unusually well-documented for a social science claim. It has shaped real foreign policy — versions of the theory were explicitly cited in U.S. foreign policy rhetoric in the 1990s to justify democracy promotion as a peace strategy — while remaining, at its core, a correlation whose mechanism is still being argued out.'
+  ],
+  related:['tragedy-commons','ussr-collapse']
+},
+{
+  id:'entropy', cat:'Physics', tint:'#c9a227', icon:'hourglass',
+  q:'Why can\'t the universe just run backward?',
+  teaser:'Nearly every fundamental law of physics works the same forwards or backwards in time — except one. The second law of thermodynamics is the reason broken glass doesn\'t reassemble itself, and it hinges on a deceptively simple idea: entropy.',
+  title:'Entropy, and the strange one-way street of time',
+  eyebrow:'Physics · long read',
+  body:[
+   'Watch a video of two billiard balls colliding, and you cannot tell if it\'s playing forward or in reverse — the physics of the collision looks equally valid either way. Watch a video of an egg smashing on the floor, and you know instantly if it\'s reversed, because eggs don\'t un-smash. This asymmetry is strange, because almost every fundamental equation in physics — Newton\'s laws, Maxwell\'s equations, even the core equations of quantum mechanics — is time-symmetric. Reverse the direction of time in the math, and the equations still hold. So where does the one-way arrow of time in everyday experience come from?',
+   'The answer lies in the second law of thermodynamics, which says the entropy of an isolated system never decreases over time. Entropy is often loosely described as "disorder," but a more precise and more useful definition, developed by Ludwig Boltzmann in the late 19th century, is statistical: entropy measures the number of microscopic arrangements consistent with a given macroscopic state.',
+   'Consider a shattered egg versus a whole egg. There is exactly one arrangement of shell fragments and yolk that looks like an intact egg sitting neatly in its shell. There are astronomically many arrangements of the same atoms that look like "a mess on the floor." When the egg falls and breaks, it isn\'t violating any fundamental law by moving toward disorder — it is simply moving toward the vastly more probable set of configurations, the way a shuffled deck of cards is far more likely to end up in a random order than in perfect suit sequence, not because shuffling forbids the ordered outcome, but because there is only one ordered outcome among trillions of possibilities.',
+   'This statistical framing explains why entropy increase feels like a law of nature even though, technically, it is a law of overwhelming probability rather than strict impossibility. It is not physically impossible for all the air molecules in a room to spontaneously rush into one corner, leaving you gasping in a vacuum on the other side. It is just so staggeringly improbable — the number of ways air can be spread evenly throughout a room dwarfs the number of ways it can be crammed into a corner — that you would need to wait vastly longer than the age of the universe to see it happen even once.',
+   'This raises an important puzzle physicists still debate: if entropy always increases, and the universe has existed for about 13.8 billion years, why wasn\'t entropy already maximized long ago? The leading answer is that the universe began in an extraordinarily low-entropy state — matter distributed with unusual smoothness right after the Big Bang, held in that low-entropy condition partly by the way gravity works on cosmic scales. Physicist Roger Penrose has argued this initial low-entropy condition is itself one of the deepest unsolved puzzles in cosmology, sometimes called the "past hypothesis."',
+   'The arrow of time we experience — memory pointing to the past, causes preceding effects, eggs breaking but not unbreaking — may ultimately be nothing more, and nothing less, than the universe sliding down a very long, very gradual probability slope from an improbable beginning toward a more probable, more evenly-mixed future. That we experience this slide as the flow of time itself is one of the more genuinely mind-bending implications of 19th-century statistical mechanics.'
+  ],
+  related:['fermi-paradox']
+},
+{
+  id:'black-death', cat:'History', tint:'#b0532c', icon:'virus',
+  q:'How did a plague that killed a third of Europe help spark the Renaissance?',
+  teaser:'The Black Death was an unimaginable catastrophe — yet in its aftermath, surviving peasants gained bargaining power they had never held before, feudal structures cracked, and a new, wealthier, more questioning European society began to take shape.',
+  title:'Catastrophe as catalyst: the plague\'s unintended economic legacy',
+  eyebrow:'History · long read',
+  body:[
+   'Between 1347 and 1351, the Black Death killed an estimated 30 to 60 percent of Europe\'s population, a death toll so vast that entire villages were abandoned and mass graves overwhelmed church cemeteries. It is tempting to read this only as tragedy, and it was, unambiguously, a horror for those who lived through it. But historians studying the following century have identified a set of economic and social shifts that, however unintentionally, helped set the stage for the cultural flowering we now call the Renaissance.',
+   'The most direct mechanism was labor scarcity. Before the plague, European peasants existed under manorial systems that gave lords enormous leverage — labor was abundant and land was the scarce resource, so lords could demand heavy obligations from tenants who had few alternatives. After the plague killed a large share of the workforce, that balance flipped. Labor became the scarce resource, and surviving peasants and artisans could demand higher wages or better terms, or simply move to a different manor or town offering better conditions. Some historians estimate real wages for laborers in England roughly doubled within a few generations after the plague.',
+   'Landowning elites did not accept this shift quietly. England\'s Statute of Labourers in 1351 attempted to freeze wages at pre-plague levels by law, and similar measures were attempted elsewhere in Europe. These efforts largely failed against the basic economics of scarce labor, and the resentment they generated is often cited as a contributing spark to popular uprisings like the 1381 English Peasants\' Revolt — itself a sign of a peasantry newly willing and able to challenge the old order.',
+   'The plague also concentrated capital. Inheritance often passed wealth to fewer surviving heirs, and merchant families and guilds in Italian city-states like Florence, Venice, and Genoa found themselves with concentrated fortunes at exactly the moment labor and materials were more available for building and craftsmanship. Art historians have long noted that patronage of the arts — a defining feature of the Renaissance — required exactly this kind of concentrated private wealth willing to fund painters, sculptors, and architects on an unprecedented scale.',
+   'There is also a less measurable but widely discussed cultural shift: a plague that killed indiscriminately, sparing neither the pious nor the powerful, undermined confidence in existing religious and social explanations for suffering and hierarchy. Some historians connect this to a growing appetite for humanism, an intellectual movement that shifted focus toward human experience, classical texts, and individual potential rather than purely religious explanations of the world — themes central to Renaissance art and thought.',
+   'It would be a mistake to claim the plague single-handedly caused the Renaissance; the two are separated by decades, and the Renaissance drew on many threads, including the rediscovery of classical Greek and Roman texts (accelerated by scholars fleeing the 1453 fall of Constantinople) and the rise of wealthy Italian city-states as trading hubs. But the demographic and economic disruption of the Black Death is now widely treated by historians as one of the conditions that made the social and financial soil fertile for what followed — a sobering reminder that historical progress rarely arrives cleanly, and sometimes grows directly out of catastrophe.'
+  ],
+  related:['fall-rome','printing-press']
+},
+{
+  id:'fermi-paradox', cat:'Astronomy', tint:'#c9a227', icon:'telescope',
+  q:'If the universe is so vast and old, why haven\'t we found anyone else in it?',
+  teaser:'There are hundreds of billions of stars in our galaxy alone, many billions of years older than our sun. If intelligent life is even moderately common, the galaxy should be humming with signals and evidence. It isn\'t, as far as we can tell — and that silence has a name.',
+  title:'The Fermi Paradox: where is everybody?',
+  eyebrow:'Astronomy · long read',
+  body:[
+   'The physicist Enrico Fermi is said to have posed a deceptively simple question over lunch in 1950: given the size and age of the universe, where is everybody? The galaxy contains an estimated 100 to 400 billion stars, many far older than our own sun, and a substantial fraction are now known to host planets. Even under conservative assumptions about how often life arises and evolves intelligence, some calculations suggest civilizations capable of interstellar travel or communication should have had ample time — hundreds of millions of years, in some stellar systems — to spread across or at least signal throughout the galaxy. And yet, decades of searching for extraterrestrial radio signals, most notably through the SETI (Search for Extraterrestrial Intelligence) project, have found nothing conclusive.',
+   'One family of proposed answers is often called the "Great Filter" — the idea that somewhere along the path from simple chemistry to a galaxy-spanning civilization, there exists at least one enormously improbable step that filters out almost every potential lineage. The unsettling question is whether that filter lies behind us or ahead of us. If it lies behind us — if the origin of life itself, or the jump from simple to complex cells, is the rare, hard step — then intelligent life like ours may be genuinely exceptional, and we have already cleared the hardest part. If the filter lies ahead of us, the implication is darker: perhaps civilizations reliably self-destruct, through nuclear war, engineered pandemics, runaway artificial intelligence, or ecological collapse, before they can spread beyond their home planet.',
+   'A second family of answers questions whether we would even recognize evidence of other civilizations if it existed. Radio signals weaken over interstellar distances and may only be detectable for a narrow technological window before a civilization moves to more efficient or less leaky communication methods — humanity itself has already reduced its "radio leakage" into space as broadcasting shifted to cable and digital compression. It is possible advanced civilizations exist but communicate in ways we are not yet equipped to detect.',
+   'A third answer, sometimes called the "zoo hypothesis," speculates that advanced civilizations may deliberately avoid contact, whether out of caution, ethical restraint, or simple disinterest in a technologically primitive species like humanity — an idea that is provocative but essentially untestable, which is part of why many scientists treat it more as science fiction than serious hypothesis.',
+   'A fourth, more mundane answer simply questions the premise: that the numbers involved, while large, may still leave interstellar travel and communication so difficult, slow, and energy-intensive that even a galaxy with many technological civilizations would still appear empty and silent to any one of them, simply because the distances and timescales involved are so vast relative to the lifespan of any single technological era.',
+   'What makes the Fermi Paradox durable as a question, rather than a solved puzzle, is that every proposed answer carries real stakes for how we should think about humanity\'s own future — whether we are unusually lucky, unusually early, or perhaps not as alone as the silence suggests, just harder to find each other than physics makes convenient.'
+  ],
+  related:['entropy']
+},
+{
+  id:'compound-interest', cat:'Economics · Psychology', tint:'#c9a227', icon:'spiral',
+  q:'Why do humans consistently underestimate compound growth, even when we know the formula?',
+  teaser:'Compound interest is simple arithmetic, yet study after study shows people badly misjudge how fast exponential growth compounds — a bias with real consequences for how we save, borrow, and think about everything from pandemics to climate change.',
+  title:'Exponential growth bias: the math we all know and still misjudge',
+  eyebrow:'Behavioral economics · long read',
+  body:[
+   'There is an old legend, likely apocryphal, about the inventor of chess asking his king for a modest reward: one grain of rice on the first square of the chessboard, two on the second, four on the third, doubling each time across all 64 squares. The king agreed, assuming it was a trivial request — only to discover that by the last square alone, the grains required would exceed 18 quintillion, more rice than has ever been harvested in human history. The legend endures because it captures a genuine, well-documented failure of human intuition: we are built to reason well about linear growth and badly about exponential growth.',
+   'Researchers call this exponential growth bias, and it has been measured repeatedly in controlled studies. When people are asked to estimate how an investment compounding at a fixed interest rate will grow over 20 years, most substantially underestimate the final value, even when given the exact interest rate and formula. The bias doesn\'t disappear with financial literacy training alone; it seems to reflect something more fundamental about how the brain models growth, likely because most of the physical world we evolved to navigate — the growth of plants, the speed of a thrown object, the depletion of a food source — behaves close enough to linearly over the timescales that mattered for survival that we never developed strong intuitions for runaway compounding.',
+   'The consequences are not merely academic. Economists have linked exponential growth bias to under-saving for retirement: if you underestimate how powerfully compound interest works in your favor, you underestimate the cost of delaying saving by even a few years, since the "lost" early compounding years are disproportionately valuable. The same bias runs in the opposite direction with debt — people frequently underestimate how quickly credit card balances compound at high interest rates, contributing to debt spirals that feel, subjectively, much slower-building than the math actually is.',
+   'The bias shows up well beyond personal finance. During the early stages of the COVID-19 pandemic, epidemiologists repeatedly noted that public intuition badly lagged the mathematics of exponential case growth — a disease doubling every few days can go from a seemingly trivial number of cases to an overwhelming one within a couple of weeks, a pattern that consistently caught policymakers and the public off guard even when the doubling rate was explicitly stated. Climate scientists have raised a similar concern about compounding feedback loops in warming projections, where small early changes can imply much larger later ones than linear intuition suggests.',
+   'One reason the bias is so persistent is that exponential curves look deceptively flat in their early stages — almost indistinguishable from a flat line — before turning sharply upward. A quantity doubling every year looks unremarkable for the first several doublings and then, within just a few more steps, becomes almost incomprehensibly large. This "flat, then explosive" shape means our early observations of an exponential process are exactly the observations least likely to trigger the intuition that something dramatic is coming.',
+   'Financial educators have found that visual tools — plotting the actual curve rather than stating the formula — help correct the bias more effectively than teaching the math alone, presumably because it lets people see the shape of the trap rather than just calculate their way past it. It is one of the more practical reminders that knowing a formula and having accurate intuition about what that formula implies are two quite different cognitive skills.'
+  ],
+  related:['tragedy-commons']
+},
+{
+  id:'tragedy-commons', cat:'Economics', tint:'#54725a', icon:'hands',
+  q:'Why do shared resources get destroyed even when everyone knows better?',
+  teaser:'Overfished oceans, depleted aquifers, polluted air: the pattern repeats across history whenever a resource is shared and unowned. But the standard explanation, the "tragedy of the commons," turns out to be more contested — and more hopeful — than its grim reputation suggests.',
+  title:'The tragedy of the commons, and the Nobel-winning rebuttal to its pessimism',
+  eyebrow:'Economics · long read',
+  body:[
+   'In 1968, ecologist Garrett Hardin published an essay describing a scenario that has since become one of the most cited (and most misapplied) metaphors in environmental economics: imagine a shared pasture open to all herders in a village, with no one owning it individually. Each herder benefits fully from adding one more animal to graze, while the cost of that added grazing pressure — a slightly more depleted pasture — is spread across every herder in the village. Rational self-interest, Hardin argued, leads every herder to keep adding animals, since the personal benefit is concentrated and the cost is diffused, until the shared pasture is destroyed by overuse. He called this the "tragedy of the commons" and extended the logic to overfishing, pollution, and population growth.',
+   'The metaphor resonated because the underlying logic is genuinely sound as a description of a specific incentive structure: when a resource is non-excludable (you can\'t stop others from using it) and rivalrous (one person\'s use depletes what\'s available to others), and there is no mechanism to coordinate use, individually rational choices can produce a collectively disastrous outcome. Modern examples that fit this pattern well include international ocean fisheries in waters with weak enforcement, and, quite directly, greenhouse gas emissions, where any individual country benefits from continued emissions while the atmospheric cost is shared by the entire planet.',
+   'But Hardin\'s essay contained an implicit and, it turned out, empirically shaky assumption: that communities sharing a resource are essentially unable to organize their own rules to prevent overuse, and require either privatization or government regulation imposed from outside to avoid collapse. This is the claim that economist Elinor Ostrom spent much of her career testing against real-world evidence, work that eventually won her the Nobel Memorial Prize in Economic Sciences in 2009 — the first, and so far only, woman to receive it.',
+   'Ostrom studied real commons around the world — Swiss alpine grazing pastures, Japanese communal forests, irrigation systems in Spain and the Philippines — many of which had been managed sustainably by local communities for centuries without privatization or top-down government control. She identified a recurring set of design principles that successful commons-management institutions shared: clearly defined boundaries of who could use the resource, rules adapted to local conditions rather than imposed uniformly, mechanisms for users themselves to monitor compliance, graduated sanctions for violations rather than harsh all-or-nothing punishment, and accessible conflict-resolution mechanisms.',
+   'Her findings did not refute the existence of tragedy-of-the-commons dynamics — plenty of real commons genuinely have collapsed under exactly the pressures Hardin described. Instead, they refuted the fatalism embedded in his essay: that overuse is an inevitable, near-mechanical outcome of shared resources, rather than a contingent outcome that depends heavily on whether users can communicate, build trust, and design their own enforceable rules. Where those conditions exist, Ostrom showed, communities frequently do manage shared resources sustainably, sometimes for hundreds of years, without ever needing to divide the resource into private plots or hand control to a distant regulator.',
+   'The debate has practical stakes well beyond academic economics. Climate policy, in particular, sits squarely on this fault line: some argue that only strong international regulation (the "external authority" solution Hardin implicitly favored) can prevent a global tragedy of the commons around carbon emissions, while others draw on Ostrom\'s work to argue that polycentric, locally adapted governance — many overlapping institutions rather than one central authority — may be more resilient and more achievable in practice. Both camps take the underlying tragedy seriously; they disagree, informed by different bodies of evidence, about which kind of institution is actually capable of preventing it.'
+  ],
+  related:['democratic-peace','compound-interest']
+},
+{
+  id:'printing-press', cat:'History', tint:'#b0532c', icon:'press',
+  q:'How did a mechanical invention set off a continent-wide religious war?',
+  teaser:'Gutenberg built his press to print Bibles faster. Within a century, the same technology had shattered the religious unity of Western Europe, fueling the Reformation and decades of war — a case study in how a change in the cost of copying information can reshape power itself.',
+  title:'Gutenberg\'s unintended weapon: print and the Reformation',
+  eyebrow:'History · long read',
+  body:[
+   'When Johannes Gutenberg perfected movable metal type in the German city of Mainz around 1440, his ambitions were commercial and, by his own account, pious: printed Bibles and indulgences could be produced faster and more cheaply than hand-copied manuscripts, a genuine improvement in efficiency rather than a planned revolution. Within about seventy years of his invention, the same technology had become the decisive weapon in the most serious challenge to the Catholic Church\'s authority in a thousand years.',
+   'Before print, the reproduction of texts was slow, expensive, and largely controlled by monasteries and university scribes, which meant the Church could exercise meaningful influence over which ideas circulated widely and which were suppressed quietly at the source. Movable type changed the underlying economics: a printed pamphlet could be produced in the hundreds or thousands at a fraction of the cost and time of hand copying, and once an idea existed as a physical print run distributed across multiple cities, no single authority could easily recall or suppress every copy.',
+   'Martin Luther\'s Ninety-Five Theses, posted in Wittenberg in 1517 as an academic challenge to the sale of indulgences, might have remained a local university dispute in an earlier era. Instead, sympathetic printers translated and reproduced the theses within weeks, and copies spread across German-speaking lands and beyond within months — a speed of ideological transmission with no real precedent. Historians estimate that within a few years, several hundred thousand copies of Luther\'s various writings had been printed, an almost unthinkable reach for a single author\'s work in the pre-print era.',
+   'Print didn\'t just spread Luther\'s specific arguments faster; it changed the nature of religious authority itself. Luther\'s central theological claim, that individual believers could and should read and interpret scripture directly rather than relying solely on Church-trained clergy as intermediaries, was made practically possible at scale specifically because print made vernacular-language Bibles — translated from Latin into German, English, and other everyday languages — affordable and widely available for the first time. The theology and the technology reinforced each other: sola scriptura, the doctrine of scripture alone as religious authority, was only a realistic mass movement once ordinary literate people could plausibly own and read scripture themselves.',
+   'The Catholic Church did not fail to notice the danger. The Council of Trent, convened partly in response to the Reformation, eventually produced the Index Librorum Prohibitorum, a formal list of banned books, and various Catholic territories imposed printing licenses and censorship regimes. But enforcement across a fragmented Europe of competing kingdoms and city-states proved far harder than it would have been against a single scriptorium a century earlier — the same political fragmentation that some historians point to in explaining Europe\'s scientific rise also made suppressing a printed idea nearly impossible once it had multiple sympathetic territories willing to keep printing it.',
+   'What followed was decades of religious war across Central Europe, culminating in the extraordinarily destructive Thirty Years\' War (1618–1648), which some estimates suggest killed a larger share of the German population than either World War would centuries later. It is a stark illustration of a pattern historians of technology return to again and again: a shift in the cost and speed of copying and distributing information does not merely spread existing ideas faster, it changes who is capable of holding authority at all, often with consequences the original inventors never intended or foresaw.'
+  ],
+  related:['needham','black-death']
+},
+{
+  id:'placebo', cat:'Medicine', tint:'#54725a', icon:'pillheart',
+  q:'Why can a sugar pill sometimes reduce real, measurable pain?',
+  teaser:'The placebo effect is often dismissed as "just in your head," but brain imaging shows it triggers measurable biological changes — real neurotransmitter release, altered pain signaling — raising uncomfortable questions about where the line between mind and body actually sits in medicine.',
+  title:'The placebo effect: a biologically real illusion',
+  eyebrow:'Medicine · long read',
+  body:[
+   'A placebo, in clinical research, is an inert treatment — a sugar pill, a saline injection, a sham procedure — given to a control group so researchers can measure how much of a real treatment\'s apparent benefit is due to the treatment itself versus other factors. The uncomfortable finding, replicated across decades of clinical trials, is that placebo groups frequently show genuine, measurable improvement, particularly for pain, nausea, depression, and other conditions with a significant subjective component.',
+   'For a long time, this was explained away as measurement noise: patients simply reporting they feel better to please researchers, or conditions naturally improving over time regardless of treatment (a phenomenon called regression to the mean). Both effects are real and do inflate apparent placebo responses in some studies. But neuroscience research since the 1990s has shown something more specific is also happening biologically. Brain imaging studies of patients given placebo painkillers show activation in the same neural pain-modulation circuits — involving the brain\'s own endogenous opioid system — that active painkillers engage. In some studies, administering naloxone, a drug that blocks opioid receptors, actually weakens the placebo pain-relief effect, strong evidence that the body is releasing its own opioid-like chemicals in response to the expectation of relief, not merely reporting a subjective sensation.',
+   'The mechanisms researchers now point to include expectation and conditioning. Expectation-based placebo effects seem to rely heavily on what a patient believes is about to happen: studies have shown that placebo effects are stronger when a pill is described as an expensive, well-known brand, when it is injected rather than swallowed, or when the person administering it appears confident and reassuring — none of which changes the inert substance itself, but all of which change the patient\'s prediction of relief, apparently changing measurable physiology.',
+   'Conditioning-based placebo effects work differently, more like a Pavlovian association. If a patient has repeatedly taken a real drug alongside a distinctive pill color or ritual, the body can learn to produce part of the physiological drug response to the ritual alone, even once the active ingredient is quietly removed — an effect demonstrated in studies of immune suppression and hormone response, not just subjective pain reports.',
+   'It is important to be precise about the limits of this effect, because popular accounts often overstate it. Placebos reliably influence subjective, centrally-mediated symptoms like pain intensity, nausea, and perceived fatigue. They do not shrink tumors, clear bacterial infections, or heal broken bones — there is no credible evidence that a placebo can alter the objective biological progression of diseases that don\'t have a significant nervous-system or subjective-symptom component. The placebo effect is real, but it is not a general substitute for medicine; it is a real biological pathway layered on top of, not instead of, the pathways that active medicine addresses.',
+   'The placebo effect\'s twin, the nocebo effect, adds another layer: patients told a treatment (even an inert one) might cause side effects frequently report those side effects at meaningfully higher rates than control groups given no such warning, again with measurable physiological correlates in some studies. This creates a genuine ethical tension in medicine — informed consent generally requires disclosing possible side effects, yet that same disclosure can measurably increase the likelihood a patient experiences them, a dilemma clinicians and bioethicists continue to grapple with rather than one that has been neatly resolved.'
+  ],
+  related:['compound-interest']
+},
+{
+  id:'ussr-collapse', cat:'History', tint:'#b0532c', icon:'hammer',
+  q:'Why did the Soviet Union collapse despite matching the US in nuclear weapons?',
+  teaser:'The USSR had rough military parity with the United States, vast natural resources, and a global network of allied states — and it dissolved almost entirely without a foreign war. Historians point to several converging pressures rather than one clean cause.',
+  title:'The Soviet collapse: parity in missiles, fragility everywhere else',
+  eyebrow:'History · long read',
+  body:[
+   'By the mid-1980s, the Soviet Union possessed a nuclear arsenal roughly matching that of the United States, a military that had fought the West to a standstill across decades of Cold War proxy conflicts, and control over a bloc of allied states stretching across Eastern Europe and Central Asia. Six years later, in December 1991, it dissolved into fifteen separate countries, with remarkably little large-scale violence at the center of the collapse itself. Historians and political scientists have proposed several contributing explanations, and unlike some of the historical debates on this topic, there is fairly broad (though not universal) agreement that multiple factors compounded rather than any single cause being decisive.',
+   'The most commonly cited structural factor is chronic economic stagnation. The Soviet centrally-planned economy, which had shown genuine strength in earlier decades of rapid industrialization, increasingly struggled by the 1970s and 1980s to match Western economies in consumer goods, agricultural efficiency, and technological innovation, particularly in computing. Central planners set production targets that factory managers learned to game rather than genuinely fulfill, producing chronic shortages and a thriving black market that signaled deep inefficiency in the official system.',
+   'A second, more specific factor is the 1980s collapse in global oil prices. The Soviet Union had become significantly dependent on oil and gas exports for hard currency needed to import grain and technology the domestic economy struggled to produce. When oil prices fell sharply in 1986, following a period when Saudi Arabia dramatically increased production, Soviet export revenue dropped at a moment when the state could least afford it, tightening the fiscal pressure on an already strained system.',
+   'Military spending compounded the strain. Sustaining rough nuclear and conventional parity with a wealthier United States consumed a much larger share of Soviet economic output than equivalent spending did for the U.S., and the war in Afghanistan (1979–1989) added a costly, unpopular, decade-long conflict often described by historians as the Soviet Union\'s "Vietnam" — a drain on resources, morale, and international standing without a clear strategic payoff.',
+   'The proximate political trigger is usually traced to Mikhail Gorbachev\'s reform program, launched after he became General Secretary in 1985. Glasnost (openness) relaxed censorship and permitted public criticism of the state to an extent unprecedented in Soviet history, while perestroika (restructuring) attempted to introduce limited market mechanisms into the planned economy. Gorbachev\'s stated goal was to save and strengthen the Soviet system by reforming it, not to dissolve it. But the reforms had effects he did not fully anticipate: glasnost gave long-suppressed nationalist movements in Soviet republics like the Baltic states, Ukraine, and the Caucasus a legal and public platform to organize, while perestroika\'s partial, poorly sequenced market reforms disrupted the existing planned economy without yet building a functioning market one, producing worse shortages in the short term rather than better ones.',
+   'By 1989, Gorbachev had also signaled, implicitly and then explicitly, that the Soviet Union would not use military force to prop up allied communist governments in Eastern Europe the way it had in Hungary in 1956 and Czechoslovakia in 1968 — a policy sometimes wryly called the "Sinatra Doctrine," after the idea that each country could "do it their way." This directly enabled the largely peaceful collapse of Soviet-aligned governments across Eastern Europe in 1989, and the loss of the buffer states further weakened the political and economic logic holding the union itself together.',
+   'By 1991, a failed hardline coup against Gorbachev, intended to reverse his reforms and preserve the union by force, instead accelerated the union\'s collapse by discrediting the remaining central Soviet authority and strengthening Boris Yeltsin and the individual republic governments that would formally dissolve the USSR by December of that year. What stands out to most historians studying this case is less any single decisive cause and more how a system under severe structural economic strain, once its leadership introduced real political openness, lost the tools it had previously used to suppress the centrifugal pressures — nationalist, economic, and political — that had been building for years.'
+  ],
+  related:['fall-rome','democratic-peace']
+},
+{
+  id:'ants', cat:'Biology', tint:'#54725a', icon:'ants',
+  q:'How does an ant colony solve complex problems with no ant in charge?',
+  teaser:'No single ant knows the shortest path to food, the best new nest site, or how many workers the colony needs on a task — yet colonies reliably solve all three. The answer, called stigmergy, has inspired algorithms now used in real-world logistics and network routing.',
+  title:'Stigmergy: intelligence without a mind, at colony scale',
+  eyebrow:'Biology · long read',
+  body:[
+   'An individual ant has a nervous system with roughly 250,000 neurons, capable of only simple behaviors and reflexes — nothing resembling planning, memory of complex routes, or an overview of the colony\'s situation. And yet ant colonies collectively solve problems that would challenge a coordinated team of humans: finding the shortest path between a food source and the nest across changing terrain, choosing the best among several candidate sites for a new nest, and dynamically reallocating workers between foraging, nest maintenance, and brood care as conditions change. The mechanism behind this is a form of indirect coordination biologists call stigmergy — organisms modifying their shared environment in ways that guide the future behavior of others, without any direct communication or central instruction.',
+   'The clearest example is pheromone-trail foraging. When an ant finds food, it lays down a chemical pheromone trail on its way back to the nest. Other ants, encountering that trail, are more likely to follow it than to wander randomly, and if they successfully reach food via that path, they reinforce the trail further on their own return trip. Crucially, pheromone evaporates over time, meaning longer, slower paths accumulate less reinforcement per unit time than shorter, faster ones, since ants using the shorter path complete more round trips in the same period, laying down pheromone more frequently. Over repeated trips, this simple feedback loop — reinforce successful paths, let unused ones fade — reliably converges on something close to the shortest available route, without any ant ever comparing the two paths directly or holding a plan in its head.',
+   'Nest-site selection follows a different but equally decentralized process, studied extensively in Temnothorax ants by biologists including Nigel Franks and colleagues. When a colony needs a new nest, scout ants independently investigate several candidate sites and assess quality based on cues like cavity size, darkness, and entrance width. Rather than reporting back to a decision-maker, scouts that find promising sites begin recruiting other ants to visit that site directly, and the recruitment rate scales with how good the scout judged the site to be — better sites get recruited to faster. This produces a quorum-sensing process: once enough ants are physically present at one candidate site simultaneously, that presence itself triggers the colony to commit to moving there, a distributed voting system with no vote-counter and no ballot.',
+   'This same pattern — simple local rules, environmental feedback, no central controller — shows up in other decentralized biological systems, most famously in slime molds. Physarum polycephalum, a single-celled slime mold with no nervous system at all, has been shown in lab experiments to find efficient paths through mazes toward food sources, and in a widely cited 2010 study, to reconstruct a network strikingly similar in efficiency to the real Tokyo rail system when food sources were placed at the locations of major stations. The slime mold does this by extending exploratory tendrils in multiple directions, reinforcing tendrils connected to food and retracting those that are not, converging on an efficient network purely through local reinforcement, with nothing resembling a brain anywhere in the process.',
+   'These findings have moved beyond biology into practical engineering. Ant colony optimization algorithms, directly modeled on pheromone-trail reinforcement, are now used to solve real logistics problems like vehicle routing and network packet routing, where the "pheromone" is a virtual score updated by simulated agents exploring possible routes. The underlying insight — that robust, adaptive, near-optimal problem-solving does not require centralized intelligence, only the right local rules and feedback loops — has become an influential model for thinking about distributed systems well beyond entomology, including some approaches to how simple neurons might collectively give rise to more complex cognition in brains far larger than an ant\'s.'
+  ],
+  related:['entropy']
+}
+];
+
+let cursor = 0;
+let shownCount = 0;
+let online = true;
+const OFFLINE_LIMIT = 6;
+
+const feed = document.getElementById('feed');
+const dotsEl = document.getElementById('dots');
+const detailEl = document.getElementById('detail');
+const syncPill = document.getElementById('syncPill');
+const syncText = document.getElementById('syncText');
+
+function shuffledPool(){
+  const arr = [...POOL];
+  for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+  return arr;
+}
+let order = shuffledPool();
+
+function nextItem(){
+  if(cursor >= order.length){ order = shuffledPool(); cursor = 0; }
+  const item = order[cursor]; cursor++; return item;
+}
+
+function makeCard(d){
+  const card = document.createElement('div');
+  card.className='card';
+  card.style.setProperty('--tint', d.tint);
+  card.dataset.id = d.id;
+  card.innerHTML = `
+    <div class="stamp"><svg viewBox="0 0 120 120">${ICONS[d.icon]}</svg><span>${d.cat}</span></div>
+    <h2 class="q">${d.q}</h2>
+    <p class="teaser">${d.teaser}</p>
+    <div class="tap-row"><span class="line"></span><span>Tap to read the full story</span></div>
+  `;
+  card.addEventListener('click', ()=>openDetail(d));
+  return card;
+}
+
+let sentinel = null;
+let observer = null;
+
+function setupObserver(){
+  if(observer) observer.disconnect();
+  observer = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting && online) loadMore(3); });
+  }, { root: feed, threshold: 0.1 });
+}
+
+function addDot(){
+  const dot = document.createElement('i'); dotsEl.appendChild(dot);
+}
+
+function loadMore(n){
+  if(sentinel){ sentinel.remove(); sentinel = null; }
+  for(let i=0;i<n;i++){
+    const item = nextItem();
+    feed.appendChild(makeCard(item));
+    addDot();
+    shownCount++;
+  }
+  if(online){
+    sentinel = document.createElement('div');
+    sentinel.style.cssText='height:1px;';
+    feed.appendChild(sentinel);
+    observer.observe(sentinel);
+  } else if(shownCount >= OFFLINE_LIMIT){
+    appendEndCard();
+  }
+}
+
+function appendEndCard(){
+  const end = document.createElement('div');
+  end.className='end-card';
+  end.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 3v12M12 3l-4 4M12 3l4 4"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+    <h3>You've reached the end of what's saved</h3>
+    <p>Connect to Wi-Fi to keep exploring — new entries load automatically once you're back online.</p>`;
+  feed.appendChild(end);
+}
+
+function resetFeed(){
+  feed.innerHTML=''; dotsEl.innerHTML=''; cursor=0; shownCount=0; order = shuffledPool();
+  setupObserver();
+  loadMore(online ? 5 : OFFLINE_LIMIT);
+  feed.scrollTop = 0;
+  updateDots();
+}
+
+function updateDots(){
+  const cards = [...feed.querySelectorAll('.card, .end-card')];
+  let idx = Math.round(feed.scrollTop / feed.clientHeight);
+  [...dotsEl.children].forEach((dot,i)=> dot.classList.toggle('on', i===idx));
+  const active = cards[idx];
+  if(active){ dotsEl.style.setProperty('--n', idx); }
+}
+feed.addEventListener('scroll', ()=> requestAnimationFrame(updateDots));
+
+syncPill.addEventListener('click', ()=>{
+  online = !online;
+  syncPill.classList.toggle('offline', !online);
+  syncText.textContent = online ? 'online · endless' : 'offline · 6 saved';
+  resetFeed();
+});
+
+function openDetail(d){
+  detailEl.style.setProperty('--tint', d.tint);
+  const words = d.body.join(' ').split(/\s+/).length;
+  const mins = Math.max(1, Math.round(words/220));
+  const relatedChips = (d.related||[]).map(rid=>{
+    const r = POOL.find(x=>x.id===rid);
+    return r ? `<div class="chip" data-goto="${rid}">${r.q.length>46 ? r.q.slice(0,46)+'…' : r.q}</div>` : '';
+  }).join('');
+  detailEl.innerHTML = `
+    <div class="detail-top">
+      <div class="close-btn" id="closeBtn">✕</div>
+      <div class="read-meta">${mins} min read</div>
+    </div>
+    <div class="hero"><svg viewBox="0 0 120 120">${ICONS[d.icon]}</svg></div>
+    <div class="detail-body">
+      <span class="detail-eyebrow">${d.eyebrow || d.cat}</span>
+      <h1 class="detail-title">${d.title}</h1>
+      ${d.body.map(p=>`<p>${p}</p>`).join('')}
+      <div class="related-label">Related sparks</div>
+      <div class="chips">${relatedChips}</div>
+      <div class="offline-tag"><svg viewBox="0 0 24 24"><path d="M4 12 L10 18 L20 6"/></svg>saved for offline reading</div>
+    </div>
+  `;
+  detailEl.classList.add('open');
+  detailEl.querySelector('#closeBtn').addEventListener('click', closeDetail);
+  detailEl.querySelectorAll('.chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      const goto = chip.dataset.goto;
+      closeDetail();
+      setTimeout(()=>{
+        let card = feed.querySelector(`[data-id="${goto}"]`);
+        if(!card){
+          const item = POOL.find(x=>x.id===goto);
+          card = makeCard(item);
+          feed.insertBefore(card, feed.firstChild);
+        }
+        card.scrollIntoView({behavior:'instant', block:'start'});
+      }, 430);
+    });
+  });
+}
+function closeDetail(){ detailEl.classList.remove('open'); }
+
+setupObserver();
+loadMore(5);
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
